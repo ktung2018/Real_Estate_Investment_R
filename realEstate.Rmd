@@ -1,0 +1,97 @@
+---
+title: "Real Estate Investment"
+output:
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#### Dependency
+```{r, warning=FALSE, message=FALSE}
+library(tidyverse)
+```
+
+# Multiple Linear Regression
+# Importing the CSV dataset
+```{r}
+dataset = read.csv('housing_r.csv')
+dataset
+sapply(dataset, mode)
+sapply(dataset, class)
+```
+
+
+# Splitting the dataset into the Training set and Test set
+# install.packages('caTools')
+```{r}
+library(caTools)
+set.seed(123)
+split = sample.split(dataset$Price, SplitRatio = 0.8)
+training_set = subset(dataset, split == TRUE)
+test_set = subset(dataset, split == FALSE)
+```
+
+
+# Feature Scaling
+#training_set = scale(training_set)
+#test_set = scale(test_set)
+
+# Fitting Multiple Linear Regression to the Training set
+```{r}
+regressor = lm(formula = Price ~ .,
+               data = training_set)
+```
+
+# Predicting the Test set results
+```{r}
+y_pred = predict(regressor, newdata = test_set)
+y_pred
+```
+
+# Building the optimal model using Backward Elimination
+```{r}
+regressor = lm(formula = Price ~ Square_Feet + Zip_code + Bed + Bath,
+               data = dataset)
+summary(regressor)
+regressor = lm(formula = Price ~ Square_Feet + Zip_code + Bed,
+               data = dataset)
+summary(regressor)
+regressor = lm(formula = Price ~ Square_Feet + Zip_code,
+               data = dataset)
+summary(regressor)
+regressor = lm(formula = Price ~ Square_Feet,
+               data = dataset)
+summary(regressor)
+```
+
+# Visualising the Training set results
+```{r}
+library(ggplot2)
+ggplot() +
+  geom_point(aes(x = training_set$Square_Feet, y = training_set$Price),
+             colour = 'red') +
+  geom_line(aes(x = training_set$Square_Feet, y = predict(regressor, newdata = training_set)),
+            colour = 'blue') +
+  ggtitle('Price vs Square_Footage (Training set)') +
+  xlab('Square_Feet') +
+  ylab('Price')
+  ggsave("trainingRE_plot.png")
+```
+
+# Visualising the Test set results
+```{r}
+library(ggplot2)
+ggplot() +
+  geom_point(aes(x = test_set$Square_Feet, y = test_set$Price),
+             colour = 'red') +
+  geom_line(aes(x = training_set$Square_Feet, y = predict(regressor, newdata = training_set)),
+            colour = 'blue') +
+  ggtitle('Price vs Square_Feet (Testing set)') +
+  xlab('Square_Feet') +
+  ylab('Price')
+ ggsave("testingRE_plot.png")
+```
+
+
